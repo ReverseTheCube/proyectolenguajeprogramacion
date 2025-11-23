@@ -1,0 +1,68 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Consulta por Delivery{% endblock %}
+
+{% block page_title %}Consultar Pedidos entregados por Personal Delivery{% endblock %}
+
+{% block content %}
+
+<div class="card card-body mb-4">
+    <form method="GET" action="{% url 'consultar_delivery' %}">
+        <p class="text-muted">Busque al personal de delivery por DNI, nombres o apellidos. </p>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="dni_personal" class="form-label">DNI del Personal</label>
+                <input type="text" class="form-control" name="dni_personal" 
+                       value="{{ valores_busqueda.dni|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="nombres_personal" class="form-label">Nombres</label>
+                <input type="text" class="form-control" name="nombres_personal" 
+                       value="{{ valores_busqueda.nombres|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="apellidos_personal" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" name="apellidos_personal" 
+                       value="{{ valores_busqueda.apellidos|default:'' }}">
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+             <div class="col-md-12">
+                <button type="submit" name="buscar" value="1" class="btn btn-primary w-100">Buscar Personal y Ver Entregas</button>
+             </div>
+        </div>
+    </form>
+</div>
+
+{% if pedidos %}
+<div class="card card-body">
+    <h3 class="mb-3">Pedidos Entregados por: {{ personal.nombres }} {{ personal.apellidos }}</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Pedido N°</th>
+                    <th>Fecha Pedido</th>
+                    <th>Fecha Entrega</th>
+                    <th>Cliente</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.numero_pedido }}</td>
+                    <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                    <td>{{ pedido.fecha_entrega|date:"d/m/Y" }}</td>
+                    <td>{{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}</td>
+                    <td>{{ pedido.observaciones|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

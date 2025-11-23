@@ -1,0 +1,17 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Inicio - Librería UTP{% endblock %}
+
+{% block page_title %}Formulario Principal{% endblock %}
+
+{% block content %}
+    <div class="alert alert-success">
+        ¡Bienvenido, <strong>{{ user.username }}</strong>!
+    </div>
+    
+    <p>
+        Este es el menú principal del sistema. 
+        Usa la barra de navegación de arriba para acceder a los diferentes módulos, 
+        como "Registrar Pedido" o "Mantenimientos".
+    </p>
+    {% endblock %}

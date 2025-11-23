@@ -1,0 +1,29 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Modificar Categoría{% endblock %}
+
+{% block page_title %}Modificar Categoría: {{ categoria.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card card-body">
+            <form action="{% url 'categoria_update' categoria.id %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" value="{{ categoria.nombre }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea name="descripcion" class="form-control" rows="3">{{ categoria.descripcion|default:"" }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-success w-100">Guardar Cambios</button>
+                <a href="{% url 'categoria_list' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

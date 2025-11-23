@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Pedido - Librería UTP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h1, h2 { color: #333; }
+        form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        div { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input[type="date"], input[type="text"], input[type="number"], textarea {
+            width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f0f0f0; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .btn-add { background-color: #28a745; }
+        .btn-remove { background-color: #dc3545; padding: 5px 10px; }
+        /* Mensajes de Django */
+        .messages { list-style: none; padding: 0; }
+        .messages li.success { background: #d4edda; color: #155724; padding: 10px; border: 1px solid #c3e6cb; }
+        .messages li.error { background: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+    <h1>Registrar Nuevo Pedido</h1>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form action="{% url 'registrar_pedido' %}" method="POST">
+        {% csrf_token %} <h2>Datos de la Cabecera</h2>
+        <div>
+            <label for="cliente_dni">Cliente:</label>
+            <select id="cliente_dni" name="cliente_dni" required>
+                <option value="">-- Seleccione un cliente --</option>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.dni }}">{{ cliente.nombres }} {{ cliente.apellidos }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="personal_dni">Personal Delivery:</label>
+            <select id="personal_dni" name="personal_dni" required>
+                <option value="">-- Seleccione personal --</option>
+                {% for p in personal_delivery %}
+                    <option value="{{ p.dni }}">{{ p.nombres }} {{ p.apellidos }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="fecha_entrega">Fecha de Entrega Estimada:</label>
+            <input type="date" id="fecha_entrega" name="fecha_entrega" required>
+        </div>
+        <div>
+            <label for="observaciones">Observaciones:</label>
+            <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+        </div>
+
+        <h2>Detalle del Pedido</h2>
+        <div>
+            <label for="producto-selector">Añadir Producto:</label>
+            <select id="producto-selector">
+                <option value="">-- Seleccione un producto --</option>
+                {% for prod in productos %}
+                    <option value="{{ prod.numero_serie }}" 
+                            data-nombre="{{ prod.nombre }}"
+                            data-precio="{{ prod.precio }}"
+                            data-stock="{{ prod.stock }}">
+                        {{ prod.nombre }} (Stock: {{ prod.stock }}, Precio: S/ {{ prod.precio }})
+                    </option>
+                {% endfor %}
+            </select>
+            <label for="producto-cantidad" style="margin-top:10px;">Cantidad:</label>
+            <input type="number" id="producto-cantidad" value="1" min="1" style="width: 100px; display: inline-block;">
+            <button type="button" id="btn-add-producto" class="btn-add">Añadir Producto</button>
+        </div>
+
+        <table id="tabla-detalles">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unit.</th>
+                    <th>Subtotal</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-detalles-body">
+                </tbody>
+        </table>
+
+        <h2 style="text-align: right;">Subtotal: S/ <span id="display-subtotal">0.00</span></h2>
+        <h2 style="text-align: right;">IGV (18%): S/ <span id="display-igv">0.00</span></h2>
+        <h2 style="text-align: right;">Total a Pagar: S/ <span id="display-total">0.00</span></h2>
+
+        <hr>
+        <button type="submit">Registrar Pedido</button>
+    </form>
+
+
+    <script>
+        // Espera a que el documento HTML esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const btnAdd = document.getElementById('btn-add-producto');
+            const productoSelector = document.getElementById('producto-selector');
+            const cantidadInput = document.getElementById('producto-cantidad');
+            const tablaBody = document.getElementById('tabla-detalles-body');
+
+            // --- Escuchar el clic en el botón "Añadir Producto" ---
+            btnAdd.addEventListener('click', function() {
+                const selectedOption = productoSelector.options[productoSelector.selectedIndex];
+                const cantidad = parseInt(cantidadInput.value);
+
+                // Validaciones
+                if (selectedOption.value === "" || cantidad <= 0) {
+                    alert("Por favor, seleccione un producto y una cantidad válida.");
+                    return;
+                }
+                
+                const stock = parseInt(selectedOption.getAttribute('data-stock'));
+                if (cantidad > stock) {
+                    alert(`Stock insuficiente. Disponible: ${stock}`);
+                    return;
+                }
+
+                // Obtener datos del producto
+                const serie = selectedOption.value;
+                const nombre = selectedOption.getAttribute('data-nombre');
+                const precio = parseFloat(selectedOption.getAttribute('data-precio'));
+                
+                // Crear la nueva fila para la tabla visible
+                const subtotalFila = (precio * cantidad).toFixed(2);
+                
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-serie', serie); // Para evitar duplicados
+                newRow.innerHTML = `
+                    <td>
+                        ${nombre}
+                        <input type="hidden" name="producto_serie[]" value="${serie}">
+                        <input type="hidden" name="cantidad[]" value="${cantidad}">
+                    </td>
+                    <td>${cantidad}</td>
+                    <td>S/ ${precio.toFixed(2)}</td>
+                    <td>S/ ${subtotalFila}</td>
+                    <td><button type="button" class="btn-remove">Quitar</button></td>
+                `;
+                
+                // Añadir la fila a la tabla
+                tablaBody.appendChild(newRow);
+                
+                // Resetear el selector
+                productoSelector.selectedIndex = 0;
+                cantidadInput.value = 1;
+                
+                // Actualizar los totales
+                actualizarTotales();
+            });
+
+            // --- Escuchar clics en los botones "Quitar" (delegación de eventos) ---
+            tablaBody.addEventListener('click', function(e) {
+                if (e.target && e.target.classList.contains('btn-remove')) {
+                    // Si se hizo clic en un botón "Quitar", elimina la fila (el <tr> padre)
+                    e.target.closest('tr').remove();
+                    // Actualizar los totales
+                    actualizarTotales();
+                }
+            });
+
+            // --- Función para calcular y mostrar los totales ---
+            function actualizarTotales() {
+                let subtotalTotal = 0;
+                
+                // Itera sobre todas las filas de la tabla
+                const filas = tablaBody.querySelectorAll('tr');
+                filas.forEach(fila => {
+                    const cantidad = parseInt(fila.querySelector('input[name="cantidad[]"]').value);
+                    const precio = parseFloat(fila.cells[2].innerText.replace('S/ ', ''));
+                    subtotalTotal += cantidad * precio;
+                });
+                
+                const igv = subtotalTotal * 0.18;
+                const total = subtotalTotal + igv;
+                
+                // Muestra los valores 
+                document.getElementById('display-subtotal').innerText = subtotalTotal.toFixed(2);
+                document.getElementById('display-igv').innerText = igv.toFixed(2);
+                document.getElementById('display-total').innerText = total.toFixed(2);
+            }
+        });
+    </script>
+
+</body>
+</html>

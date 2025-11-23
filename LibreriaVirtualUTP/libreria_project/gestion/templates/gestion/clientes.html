@@ -1,0 +1,89 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Gestión de Clientes{% endblock %}
+
+{% block page_title %}Mantenimiento de Clientes{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <h3>Registrar Cliente</h3>
+        <form action="{% url 'cliente_list' %}" method="POST" class="card card-body">
+            {% csrf_token %}
+            <p class="text-muted">Todos los campos son obligatorios.</p>
+            
+            <div class="mb-3">
+                <label for="dni" class="form-label">DNI</label>
+                <input type="text" class="form-control" name="dni" required>
+            </div>
+            <div class="mb-3">
+                <label for="nombres" class="form-label">Nombres</label>
+                <input type="text" class="form-control" name="nombres" required>
+            </div>
+            <div class="mb-3">
+                <label for="apellidos" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" name="apellidos" required>
+            </div>
+            <div class="mb-3">
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email" class="form-control" name="correo" required>
+            </div>
+            <div class="mb-3">
+                <label for="direccion" class="form-label">Dirección</label>
+                <input type="text" class="form-control" name="direccion">
+            </div>
+            <div class="mb-3">
+                <label for="distrito" class="form-label">Distrito</label>
+                <input type="text" class="form-control" name="distrito">
+            </div>
+            <div class="mb-3">
+                <label for="celular" class="form-label">Celular</label>
+                <input type="text" class="form-control" name="celular">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Registrar</button>
+        </form>
+    </div>
+
+    <div class="col-md-8">
+        <h3>Lista de Clientes Registrados</h3>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>DNI</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Correo</th>
+                        <th>Celular</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.dni }}</td>
+                        <td>{{ cliente.nombres }}</td>
+                        <td>{{ cliente.apellidos }}</td>
+                        <td>{{ cliente.correo }}</td>
+                        <td>{{ cliente.celular }}</td>
+                        <td>
+                            <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-warning btn-sm">Modificar</a>
+                            
+                            <form action="{% url 'cliente_delete' cliente.dni %}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro que desea eliminar este cliente?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay clientes registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Modificar Personal{% endblock %}
+
+{% block page_title %}Modificar Personal: {{ personal.dni }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card card-body">
+            <form action="{% url 'personal_update' personal.dni %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">DNI (No editable)</label>
+                    <input type="text" class="form-control" value="{{ personal.dni }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="nombres" class="form-label">Nombres</label>
+                    <input type="text" class="form-control" name="nombres" value="{{ personal.nombres }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="apellidos" class="form-label">Apellidos</label>
+                    <input type="text" class="form-control" name="apellidos" value="{{ personal.apellidos }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="celular" class="form-label">Celular</label>
+                    <input type="text" class="form-control" name="celular" value="{{ personal.celular|default:"" }}">
+                </div>
+                
+                <button type="submit" class="btn btn-success w-100">Guardar Cambios</button>
+                <a href="{% url 'personal_list' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

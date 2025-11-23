@@ -1,0 +1,49 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Modificar Cliente{% endblock %}
+
+{% block page_title %}Modificar Cliente: {{ cliente.dni }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card card-body">
+            <form action="{% url 'cliente_update' cliente.dni %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">DNI (No editable)</label>
+                    <input type="text" class="form-control" value="{{ cliente.dni }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="nombres" class="form-label">Nombres</label>
+                    <input type="text" class="form-control" name="nombres" value="{{ cliente.nombres }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="apellidos" class="form-label">Apellidos</label>
+                    <input type="text" class="form-control" name="apellidos" value="{{ cliente.apellidos }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo</label>
+                    <input type="email" class="form-control" name="correo" value="{{ cliente.correo }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="direccion" class="form-label">Dirección</label>
+                    <input type="text" class="form-control" name="direccion" value="{{ cliente.direccion }}">
+                </div>
+                <div class="mb-3">
+                    <label for="distrito" class="form-label">Distrito</label>
+                    <input type="text" class="form-control" name="distrito" value="{{ cliente.distrito }}">
+                </div>
+                <div class="mb-3">
+                    <label for="celular" class="form-label">Celular</label>
+                    <input type="text" class="form-control" name="celular" value="{{ cliente.celular }}">
+                </div>
+                
+                <button type="submit" class="btn btn-success w-100">Guardar Cambios</button>
+                <a href="{% url 'cliente_list' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
